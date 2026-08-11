@@ -15,6 +15,9 @@ import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "./config.js";
 
 const SESSION_KEY = "bs-share-session";
 const REFRESH_MARGIN_MS = 60000;
+// 앱(PC·모바일)과 같은 표기를 쓴다 — 서버가 돌려주는 값은 영문 코드다.
+const POLL_STATUS_LABEL = { draft: "초안", open: "응답 중", closed: "조율 종료", confirmed: "시간 확정" };
+const RESPONSE_LABEL = { available: "가능", preferred: "선호", unavailable: "불가", "": "미응답" };
 
 let session = loadSession();
 let snapshotData = null;
@@ -133,8 +136,10 @@ function node(tag, attrs = {}, ...kids) {
     return element;
 }
 
+// 목록을 배열로 넘기는 자리가 많아 반드시 평탄화한다 — Element.append() 는 배열을 노드로
+// 받지 않고 문자열로 바꿔 버려서(화면에 "[object HTMLDivElement]" 로 보인다) 그대로 넘기면 안 된다.
 function section(title, ...kids) {
-    return [node("h2", { text: title }), ...kids];
+    return [node("h2", { text: title }), ...kids.flat(Infinity).filter(Boolean)];
 }
 
 function renderAccount() {
@@ -191,13 +196,13 @@ function render() {
                 node("div", { class: "row" },
                     node("div", { class: "grow" },
                         node("strong", { text: poll.title }),
-                        node("span", { class: "sub", text: `${poll.status} · 후보 ${slots.length}개` }))),
+                        node("span", { class: "sub", text: `${POLL_STATUS_LABEL[poll.status] || "초안"} · 후보 ${slots.length}개` }))),
                 node("div", { class: "slots" }, slots.map((slot) => {
                     const current = mine[slot] || "";
                     return node("button", {
                         class: "slot" + (current ? " on " + current : ""), type: "button",
                         onclick: () => cycleResponse(poll, slot, current)
-                    }, `${slotLabel(slot)} · ${{ available: "가능", preferred: "선호", unavailable: "불가", "": "미응답" }[current]}`);
+                    }, `${slotLabel(slot)} · ${RESPONSE_LABEL[current]}`);
                 })));
         })));
 
