@@ -169,6 +169,7 @@ function render() {
     const signedIn = !!session?.access_token;
     el("signin").classList.toggle("hidden", signedIn);
     el("btn-mobile-invite").classList.toggle("hidden", !signedIn);
+    el("path-invite").classList.toggle("hidden", !signedIn);
     el("content").classList.toggle("hidden", !signedIn || !snapshotData);
     if (!signedIn || !snapshotData) return;
 
@@ -259,14 +260,14 @@ async function respondEvent(event, response) {
     await refresh();
 }
 
-async function acceptInvite() {
-    const token = el("invite-token").value.trim();
+async function acceptInvite(input = el("invite-token")) {
+    const token = input.value.trim();
     if (!token) { status("초대 코드를 입력해 주세요.", true); return; }
     status("참가 중…");
     const result = await actionAdapter.respondInvite({ token, response: "accepted" });
     if (result.error) { status(result.error, true); return; }
-    el("invite-token").value = "";
-    el("invite").close();
+    input.value = "";
+    if (el("invite").open) el("invite").close();
     await refresh();
     status("공유 캘린더에 참가했습니다.");
 }
@@ -274,9 +275,11 @@ async function acceptInvite() {
 // ---------- 시작 ----------
 
 el("btn-signin").onclick = startSignIn;
-el("btn-invite").onclick = acceptInvite;
+el("btn-invite").onclick = () => acceptInvite(el("invite-token"));
+el("path-invite").addEventListener("submit", (event) => { event.preventDefault(); acceptInvite(el("path-invite-token")); });
 function openInvite() { if (session?.access_token) { el("invite").showModal(); window.setTimeout(() => el("invite-token").focus(), 0); } }
-el("btn-open-invite").onclick = openInvite;
+const inviteDialogButton = el("btn-open-invite");
+if (inviteDialogButton) inviteDialogButton.onclick = openInvite;
 el("btn-mobile-invite").onclick = openInvite;
 document.querySelectorAll(".nav-item").forEach((button) => button.addEventListener("click", () => {
     const target = el(button.dataset.target);
