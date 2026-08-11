@@ -1,0 +1,119 @@
+/* 공유 일정 웹페이지 — 앱과 같은 톤(따뜻한 회색 + 강조색 하나)을 쓰되, 이 페이지는 앱의
+   토큰 파일을 가져오지 않고 필요한 값만 여기서 정의한다(단독 배포되는 정적 페이지라
+   앱 CSS 전체를 끌고 올 이유가 없다). 밝은/어두운 배색 둘 다 대응한다. */
+
+:root {
+    --bg: #f2f1ef;
+    --surface: #ffffff;
+    --surface-2: #edece9;
+    --text: #2f2d2b;
+    --text-dim: #6f6b67;
+    --line: rgba(47, 45, 43, 0.14);
+    --accent: #79858b;
+    --accent-soft: rgba(121, 133, 139, 0.16);
+    --error: #e74856;
+    --radius: 12px;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #1c1b1a;
+        --surface: #262523;
+        --surface-2: #302e2c;
+        --text: #e8e6e3;
+        --text-dim: #a8a49f;
+        --line: rgba(232, 230, 227, 0.16);
+        --accent: #9aa7ad;
+        --accent-soft: rgba(154, 167, 173, 0.2);
+    }
+}
+
+* { box-sizing: border-box; }
+.hidden { display: none !important; }
+
+body {
+    margin: 0;
+    padding: 0 16px 40px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: Pretendard, "Malgun Gothic", system-ui, sans-serif;
+    line-height: 1.5;
+}
+
+#topbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 18px 0 10px;
+}
+#topbar h1 { flex: 1; margin: 0; font-size: 18px; }
+#account { display: flex; align-items: center; gap: 8px; }
+.who { color: var(--text-dim); font-size: 13px; }
+
+#main { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+#content { display: flex; flex-direction: column; gap: 14px; }
+
+.panel {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+}
+.panel h2 { margin: 0 0 10px; font-size: 15px; }
+.lead { margin: 0 0 12px; color: var(--text-dim); }
+.sub { display: block; color: var(--text-dim); font-size: 13px; }
+
+.row { display: flex; align-items: center; gap: 10px; }
+.grow { flex: 1; min-width: 0; }
+.item { padding: 8px 0; border-top: 1px solid var(--line); }
+.item:first-of-type { border-top: none; }
+.dot { flex: none; width: 10px; height: 10px; border-radius: 50%; }
+
+label { display: block; margin-bottom: 6px; color: var(--text-dim); font-size: 13px; }
+input {
+    flex: 1;
+    min-width: 0;
+    height: 40px;
+    padding: 0 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface-2);
+    color: var(--text);
+    font: inherit;
+}
+input:focus { outline: none; border-color: var(--accent); }
+
+.btn {
+    height: 40px;
+    padding: 0 16px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    background: var(--surface-2);
+    color: var(--text);
+    font: inherit;
+    cursor: pointer;
+}
+.btn:hover { border-color: var(--line); }
+.btn.primary { background: var(--accent); color: #fff; }
+.btn.small { height: 32px; padding: 0 12px; font-size: 13px; }
+
+/* 후보 시간 — 누를 때마다 미응답 → 가능 → 선호 → 불가능으로 돈다. 색만으로 구분하지 않도록
+   테두리도 함께 바뀐다. */
+.slots { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.slot {
+    padding: 6px 10px;
+    border: 1px solid var(--line);
+    border-radius: 99px;
+    background: transparent;
+    color: var(--text-dim);
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
+}
+.slot.on { color: var(--text); background: var(--accent-soft); border-color: var(--accent); }
+.slot.on.unavailable { border-color: var(--error); color: var(--error); background: transparent; }
+.slot.on.preferred { border-width: 2px; }
+
+.status { max-width: 720px; margin: 0 auto; color: var(--text-dim); font-size: 13px; min-height: 20px; }
+.status.error { color: var(--error); }

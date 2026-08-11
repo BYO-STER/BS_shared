@@ -1,9 +1,19 @@
+# 공유 일정 웹페이지(webshare/)를 GitHub Pages 로 배포한다.
+#
+# 이 저장소의 Pages 배포 워크플로는 이 파일 하나만 둔다 — 예전에는 저장소 전체를 올리는
+# pages.yml 이 함께 있었는데, 둘 다 main push 에 걸리고 같은 concurrency 그룹("pages")을
+# 다투는 탓에 실행 순서에 따라 사이트 내용이 저장소 전체 / webshare 로 뒤집혔다.
+
 name: Deploy BS Calendar Web Share
 
 on:
   push:
     branches:
       - main
+    # 사이트 내용과 무관한 변경으로는 배포를 돌리지 않는다.
+    paths:
+      - "webshare/**"
+      - ".github/workflows/static.yml"
   workflow_dispatch:
 
 permissions:
@@ -25,13 +35,17 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
+      # enablement: true — 저장소의 Pages 설정이 꺼져 있거나 소스가 다른 값이어도
+      # 이 워크플로가 GitHub Actions 소스로 켜 준다(수동 설정 없이 첫 배포가 되도록).
       - name: Setup Pages
         uses: actions/configure-pages@v5
+        with:
+          enablement: true
 
       - name: Upload Web Share
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v3
         with:
           path: ./webshare
 

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <title>BS calendar 공유 일정</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="color-scheme" content="light dark">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- 앱을 깔지 않은 사람이 초대받은 공유 캘린더·시간 조율에 응답하는 페이지.
+         PC·모바일과 같은 Supabase 프로젝트를 보고, 같은 RLS 정책 아래에서만 움직인다 —
+         이 페이지가 따로 권한을 갖는 것은 없다(로그인한 계정이 볼 수 있는 것만 보인다). -->
+    <header id="topbar">
+        <h1>공유 일정</h1>
+        <div id="account"></div>
+    </header>
+
+    <main id="main">
+        <section id="signin" class="panel hidden">
+            <p class="lead">초대받은 공유 캘린더와 시간 조율을 보려면 구글 계정으로 로그인해 주세요.</p>
+            <button id="btn-signin" class="btn primary" type="button">구글 계정으로 로그인</button>
+        </section>
+
+        <section id="invite" class="panel hidden">
+            <label for="invite-token">초대 코드</label>
+            <div class="row">
+                <input id="invite-token" type="text" inputmode="latin" autocomplete="off" spellcheck="false" placeholder="받은 초대 코드">
+                <button id="btn-invite" class="btn" type="button">참가</button>
+            </div>
+        </section>
+
+        <section id="content" class="hidden">
+            <div id="calendars" class="panel"></div>
+            <div id="polls" class="panel"></div>
+            <div id="events" class="panel"></div>
+        </section>
+
+        <p id="status" class="status"></p>
+    </main>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>
