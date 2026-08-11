@@ -20,7 +20,7 @@
 
             <div class="window-pathbar">
                 <div class="path-navigation" aria-hidden="true"><span>‹</span><span>›</span><span>↑</span></div>
-                <div class="window-path"><span>내 PC</span><span>›</span><span>HAMPAGE</span><span>›</span><span>기능 모듈</span><span>›</span><span>캘린더</span><span>›</span><strong>공유 일정</strong></div>
+                <div class="window-path"><span>내 PC</span><span>›</span><span>HAMPAGE</span><span>›</span><strong>공유 일정</strong></div>
                 <form id="path-invite" class="path-invite hidden"><input id="path-invite-token" type="text" inputmode="latin" autocomplete="off" spellcheck="false" placeholder="초대 코드"><button id="btn-path-invite" type="submit">참여</button></form>
                 <div id="account"></div>
             </div>
@@ -28,26 +28,24 @@
             <div class="workspace">
                 <aside class="sidebar" aria-label="공유 일정 탐색">
                     <div class="sidebar-title">기능 모듈</div>
-                    <div class="sidebar-group-label">캘린더</div>
                     <nav class="navigation">
-                        <button class="nav-item active" type="button" data-target="signin"><span>시작하기</span></button>
+                        <button class="nav-item active" type="button" data-target="overview"><span>전체</span></button>
                         <button class="nav-item" type="button" data-target="calendars"><span>공유 캘린더</span></button>
                         <button class="nav-item" type="button" data-target="polls"><span>시간 조율</span></button>
                         <button class="nav-item" type="button" data-target="events"><span>공유 일정</span></button>
                     </nav>
-                    <div class="sidebar-note"><strong>공유 공간</strong><span>같은 캘린더를 보고 가능한 시간을 조율한다.</span></div>
                 </aside>
 
                 <main id="main">
                     <section id="signin" class="welcome-card hidden" aria-labelledby="welcome-title">
-                        <div class="section-kicker">기능 모듈 · 공유 일정</div>
+                        <div id="signin-kicker" class="section-kicker">기능 모듈 · 공유 일정</div>
                         <h1 id="welcome-title">공유 일정</h1>
-                        <p>초대받은 공유 캘린더와 시간 조율 요청을 확인하려면 Google 계정으로 로그인한다.</p>
+                        <p id="signin-description">초대받은 공유 캘린더와 시간 조율 요청을 확인하려면 Google 계정으로 로그인한다.</p>
                         <button id="btn-signin" class="btn primary" type="button">Google 계정으로 로그인</button>
                     </section>
 
                     <section id="content" class="hidden" aria-live="polite">
-                        <div class="content-intro"><div><span class="section-kicker">기능 모듈 · 공유 일정</span><h1>공유 일정</h1><p>같은 캘린더를 확인하고 모임 가능한 시간을 조율한다.</p></div></div>
+                        <div class="content-intro"><div><span id="content-kicker" class="section-kicker">기능 모듈 · 공유 일정</span><h1 id="content-title">공유 일정</h1><p id="content-description">같은 캘린더를 확인하고 모임 가능한 시간을 조율한다.</p></div></div>
                         <div class="content-grid">
                             <section id="calendars" class="panel section-panel" aria-labelledby="calendars-title"></section>
                             <section id="polls" class="panel section-panel" aria-labelledby="polls-title"></section>

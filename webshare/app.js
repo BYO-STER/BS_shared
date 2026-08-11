@@ -22,6 +22,14 @@ const RESPONSE_LABEL = { available: "가능", preferred: "선호", unavailable: 
 
 let session = loadSession();
 let snapshotData = null;
+let activeView = "overview";
+
+const VIEW_META = {
+    overview: { kicker: "기능 모듈 · 공유 일정", title: "공유 일정", description: "같은 캘린더를 확인하고 모임 가능한 시간을 조율한다." },
+    calendars: { kicker: "공유 공간", title: "공유 캘린더", description: "참여 중인 공유 캘린더와 구성원을 확인한다." },
+    polls: { kicker: "공유 공간", title: "시간 조율", description: "후보 시간에 가능한지 응답하고 모임 시간을 정한다." },
+    events: { kicker: "공유 공간", title: "공유 일정", description: "확정된 일정의 시간과 참석 여부를 확인한다." }
+};
 
 const el = (id) => document.getElementById(id);
 
@@ -152,6 +160,24 @@ function renderAccount() {
         node("button", { class: "btn small", type: "button", onclick: signOut, text: "로그아웃" }));
 }
 
+function applyView(scroll = false) {
+    const ready = !!session?.access_token && !!snapshotData;
+    const view = activeView;
+    document.querySelectorAll(".nav-item").forEach((item) => item.classList.toggle("active", item.dataset.target === view));
+    const meta = VIEW_META[view];
+    if (!ready) {
+        el("signin-kicker").textContent = meta.kicker;
+        el("welcome-title").textContent = meta.title;
+        el("signin-description").textContent = `${meta.description} 확인하려면 Google 계정으로 로그인한다.`;
+        return;
+    }
+    for (const id of ["calendars", "polls", "events"]) el(id).classList.toggle("hidden", view !== "overview" && view !== id);
+    el("content-kicker").textContent = meta.kicker;
+    el("content-title").textContent = meta.title;
+    el("content-description").textContent = meta.description;
+    if (scroll) el("main").scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+}
+
 async function refresh() {
     if (!session?.access_token) return;
     status("불러오는 중…");
@@ -171,7 +197,7 @@ function render() {
     el("btn-mobile-invite").classList.toggle("hidden", !signedIn);
     el("path-invite").classList.toggle("hidden", !signedIn);
     el("content").classList.toggle("hidden", !signedIn || !snapshotData);
-    if (!signedIn || !snapshotData) return;
+    if (!signedIn || !snapshotData) { applyView(); return; }
 
     const myId = session.user?.id || "";
 
@@ -221,6 +247,7 @@ function render() {
                 mine ? node("button", { class: "btn small" + (mine.status === "accepted" ? " primary" : ""), type: "button", onclick: () => respondEvent(event, "accepted"), text: "참가" }) : null,
                 mine ? node("button", { class: "btn small" + (mine.status === "declined" ? " primary" : ""), type: "button", onclick: () => respondEvent(event, "declined"), text: "불참" }) : null);
         }) : node("p", { class: "sub", text: "예정된 공유 일정이 없습니다." })));
+    applyView();
 }
 
 // 후보 시간 목록은 PC·모바일과 같은 파일(lib/shareddata.js 의 buildPollSlots)로 만든다 —
@@ -282,10 +309,8 @@ const inviteDialogButton = el("btn-open-invite");
 if (inviteDialogButton) inviteDialogButton.onclick = openInvite;
 el("btn-mobile-invite").onclick = openInvite;
 document.querySelectorAll(".nav-item").forEach((button) => button.addEventListener("click", () => {
-    const target = el(button.dataset.target);
-    if (!target || target.classList.contains("hidden")) return;
-    document.querySelectorAll(".nav-item").forEach((item) => item.classList.toggle("active", item === button));
-    target.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+    activeView = button.dataset.target || "overview";
+    applyView(true);
 }));
 el("invite-token").addEventListener("keydown", (event) => { if (event.key === "Enter") acceptInvite(); });
 
