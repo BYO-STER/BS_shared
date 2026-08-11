@@ -213,7 +213,7 @@ function render() {
                 node("div", { class: "grow" },
                     node("strong", { text: calendar.name }),
                     node("span", { class: "sub", text: `참가 ${calendar.members.filter((m) => m.status === "accepted").length}명` }))))
-            : [node("p", { class: "sub", text: "초대 코드로 참가하면 여기에 나타납니다." })]));
+            : [node("p", { class: "sub", text: "만들거나 초대 코드로 참가한 캘린더가 여기에 표시됩니다." })]));
 
     const calendarHeading = el("calendars-title");
     calendarsBox.insertBefore(node("div", { class: "panel-heading" }, calendarHeading, node("button", { class: "btn small", type: "button", onclick: openCalendarCreate, text: "+ 만들기" })), calendarsBox.firstChild);
