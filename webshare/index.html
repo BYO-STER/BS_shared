@@ -5,7 +5,7 @@
     <title>BS calendar 공유 일정</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="color-scheme" content="light">
-    <link rel="stylesheet" href="style.css?v=20260812-04">
+    <link rel="stylesheet" href="style.css?v=20260812-05">
 </head>
 <body>
     <div class="desktop-shell">
@@ -68,6 +68,17 @@
             <div class="dialog-heading"><div><span class="section-kicker">공유 캘린더</span><h2 id="invite-title">초대 코드 입력</h2><p>받은 초대 코드를 입력하면 공유 캘린더에 참여한다.</p></div><button id="btn-close-invite" class="close-dialog" type="submit" aria-label="초대 코드 입력 닫기">닫기</button></div>
             <label for="invite-token">초대 코드</label>
             <div class="invite-row"><input id="invite-token" type="text" inputmode="latin" autocomplete="off" spellcheck="false" placeholder="받은 초대 코드"><button id="btn-invite" class="btn primary" type="button">참여하기</button></div>
+        </form>
+    </dialog>
+
+    <dialog id="calendar-create" class="invite-dialog" aria-labelledby="calendar-create-title">
+        <form id="calendar-create-form" class="invite-sheet">
+            <div class="dialog-heading"><div><span class="section-kicker">공유 캘린더</span><h2 id="calendar-create-title">공유 캘린더 만들기</h2><p>만든 계정이 소유자가 된다. 구성원은 생성 후 초대 코드로 참여시킨다.</p></div><button class="close-dialog" type="button" data-close-calendar aria-label="공유 캘린더 만들기 닫기">닫기</button></div>
+            <label for="calendar-name">이름</label>
+            <input id="calendar-name" type="text" maxlength="120" autocomplete="off" placeholder="예: TRPG 정기 모임" required>
+            <label for="calendar-color">표시 색</label>
+            <input id="calendar-color" class="color-field" type="color" value="#6f87ad" aria-label="공유 캘린더 표시 색">
+            <div class="dialog-actions"><button class="btn" type="button" data-close-calendar>취소</button><button id="btn-calendar-create" class="btn primary" type="submit">만들기</button></div>
         </form>
     </dialog>
 

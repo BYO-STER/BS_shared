@@ -179,15 +179,18 @@ function applyView(scroll = false) {
 }
 
 async function refresh() {
-    if (!session?.access_token) return;
+    if (!session?.access_token) return false;
     status("불러오는 중…");
     try {
         snapshotData = await syncAdapter.snapshot();
         status("");
+        render();
+        return true;
     } catch (err) {
         status(String(err?.message || err || "불러오지 못했습니다."), true);
+        render();
+        return false;
     }
-    render();
 }
 
 function render() {
@@ -211,6 +214,9 @@ function render() {
                     node("strong", { text: calendar.name }),
                     node("span", { class: "sub", text: `참가 ${calendar.members.filter((m) => m.status === "accepted").length}명` }))))
             : [node("p", { class: "sub", text: "초대 코드로 참가하면 여기에 나타납니다." })]));
+
+    const calendarHeading = el("calendars-title");
+    calendarsBox.insertBefore(node("div", { class: "panel-heading" }, calendarHeading, node("button", { class: "btn small", type: "button", onclick: openCalendarCreate, text: "+ 만들기" })), calendarsBox.firstChild);
 
     const pollsBox = el("polls");
     pollsBox.textContent = "";
@@ -287,6 +293,30 @@ async function respondEvent(event, response) {
     await refresh();
 }
 
+function openCalendarCreate() {
+    if (!session?.access_token) return;
+    el("calendar-name").value = "";
+    el("calendar-color").value = "#6f87ad";
+    el("calendar-create").showModal();
+    window.setTimeout(() => el("calendar-name").focus(), 0);
+}
+
+async function createCalendar() {
+    const name = el("calendar-name").value.trim();
+    if (!name) { status("공유 캘린더 이름을 입력해 주세요.", true); el("calendar-name").focus(); return; }
+    const submit = el("btn-calendar-create");
+    if (submit.disabled) return;
+    submit.disabled = true;
+    status("공유 캘린더를 만드는 중입니다.");
+    const clientId = crypto.randomUUID?.() || `web-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const result = await syncAdapter.sync({ calendars: [{ clientId, name, color: el("calendar-color").value }] });
+    if (result.error) { status(result.error, true); submit.disabled = false; return; }
+    el("calendar-create").close();
+    activeView = "calendars";
+    if (await refresh()) status("공유 캘린더를 만들었습니다.");
+    submit.disabled = false;
+}
+
 async function acceptInvite(input = el("invite-token")) {
     const token = input.value.trim();
     if (!token) { status("초대 코드를 입력해 주세요.", true); return; }
@@ -304,6 +334,8 @@ async function acceptInvite(input = el("invite-token")) {
 el("btn-signin").onclick = startSignIn;
 el("btn-invite").onclick = () => acceptInvite(el("invite-token"));
 el("path-invite").addEventListener("submit", (event) => { event.preventDefault(); acceptInvite(el("path-invite-token")); });
+el("calendar-create-form").addEventListener("submit", (event) => { event.preventDefault(); createCalendar(); });
+document.querySelectorAll("[data-close-calendar]").forEach((button) => button.addEventListener("click", () => el("calendar-create").close()));
 function openInvite() { if (session?.access_token) { el("invite").showModal(); window.setTimeout(() => el("invite-token").focus(), 0); } }
 const inviteDialogButton = el("btn-open-invite");
 if (inviteDialogButton) inviteDialogButton.onclick = openInvite;
