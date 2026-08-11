@@ -9,6 +9,7 @@
 // 그래서 이 페이지를 올릴 주소가 Supabase 인증 설정의 Redirect URLs 에 등록돼 있어야 한다.
 
 import { createSupabaseRest } from "./lib/supabase-rest.js";
+import { buildPollSlots } from "./lib/shareddata.js";
 import { createSupabaseSyncAdapter } from "./lib/share-supabase-sync.esm.js";
 import { createSupabaseActionAdapter } from "./lib/share-supabase-actions.esm.js";
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "./config.js";
@@ -221,20 +222,10 @@ function render() {
         })));
 }
 
-// 후보 시간 → 슬롯 키 목록(모바일·PC 와 같은 "날짜|시작|종료" 규칙).
+// 후보 시간 목록은 PC·모바일과 같은 파일(lib/shareddata.js 의 buildPollSlots)로 만든다 —
+// 여기서 따로 계산하면 격자 규칙이 갈라져 응답이 엉뚱한 칸에 붙을 수 있다.
 function buildSlotKeys(poll) {
-    const minutes = Number(poll.interval) === 60 ? 60 : 30;
-    const keys = [];
-    for (const candidate of poll.candidates || []) {
-        const start = new Date(`${candidate.date}T${candidate.start}:00`);
-        const end = new Date(`${candidate.date}T${candidate.end}:00`);
-        for (let cur = start; cur.valueOf() + minutes * 60000 <= end.valueOf(); cur = new Date(cur.valueOf() + minutes * 60000)) {
-            const next = new Date(cur.valueOf() + minutes * 60000);
-            const text = (date) => `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
-            keys.push(`${candidate.date}|${text(cur)}|${text(next)}`);
-        }
-    }
-    return keys;
+    return buildPollSlots(poll).map((slot) => slot.id);
 }
 
 // ---------- 쓰기(내 응답만) ----------
