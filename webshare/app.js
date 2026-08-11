@@ -139,8 +139,8 @@ function node(tag, attrs = {}, ...kids) {
 
 // 목록을 배열로 넘기는 자리가 많아 반드시 평탄화한다 — Element.append() 는 배열을 노드로
 // 받지 않고 문자열로 바꿔 버려서(화면에 "[object HTMLDivElement]" 로 보인다) 그대로 넘기면 안 된다.
-function section(title, ...kids) {
-    return [node("h2", { text: title }), ...kids.flat(Infinity).filter(Boolean)];
+function section(title, id, ...kids) {
+    return [node("h2", { id, text: title }), ...kids.flat(Infinity).filter(Boolean)];
 }
 
 function renderAccount() {
@@ -168,7 +168,7 @@ function render() {
     renderAccount();
     const signedIn = !!session?.access_token;
     el("signin").classList.toggle("hidden", signedIn);
-    el("invite").classList.toggle("hidden", !signedIn);
+    el("btn-mobile-invite").classList.toggle("hidden", !signedIn);
     el("content").classList.toggle("hidden", !signedIn || !snapshotData);
     if (!signedIn || !snapshotData) return;
 
@@ -176,7 +176,7 @@ function render() {
 
     const calendarsBox = el("calendars");
     calendarsBox.textContent = "";
-    calendarsBox.append(...section("공유 캘린더",
+    calendarsBox.append(...section("공유 캘린더", "calendars-title",
         snapshotData.calendarRows.length
             ? snapshotData.calendarRows.map((calendar) => node("div", { class: "row item" },
                 node("span", { class: "dot", style: `background:${calendar.color || "#6f87ad"}` }),
@@ -187,8 +187,8 @@ function render() {
 
     const pollsBox = el("polls");
     pollsBox.textContent = "";
-    pollsBox.append(...section("시간 조율",
-        snapshotData.pollRows.map((poll) => {
+    pollsBox.append(...section("시간 조율", "polls-title",
+        snapshotData.pollRows.length ? snapshotData.pollRows.map((poll) => {
             const mine = poll.responses?.[myId] || {};
             const slots = (poll.candidates || []).length
                 ? buildSlotKeys(poll)
@@ -205,12 +205,12 @@ function render() {
                         onclick: () => cycleResponse(poll, slot, current)
                     }, `${slotLabel(slot)} · ${RESPONSE_LABEL[current]}`);
                 })));
-        })));
+        }) : node("p", { class: "sub", text: "진행 중인 시간 조율 요청이 없습니다." })));
 
     const eventsBox = el("events");
     eventsBox.textContent = "";
-    eventsBox.append(...section("공유된 일정",
-        snapshotData.eventRows.map((event) => {
+    eventsBox.append(...section("공유된 일정", "events-title",
+        snapshotData.eventRows.length ? snapshotData.eventRows.map((event) => {
             const mine = event.attendees.find((item) => item.userId === myId);
             const title = event.sharedData?.status === "busy" ? "일정 있음" : (event.sharedData?.title || "공유 일정");
             return node("div", { class: "row item" },
@@ -219,7 +219,7 @@ function render() {
                     node("span", { class: "sub", text: `${fmtDateTime(event.sharedData?.start)} ~ ${fmtDateTime(event.sharedData?.end)}` })),
                 mine ? node("button", { class: "btn small" + (mine.status === "accepted" ? " primary" : ""), type: "button", onclick: () => respondEvent(event, "accepted"), text: "참가" }) : null,
                 mine ? node("button", { class: "btn small" + (mine.status === "declined" ? " primary" : ""), type: "button", onclick: () => respondEvent(event, "declined"), text: "불참" }) : null);
-        })));
+        }) : node("p", { class: "sub", text: "예정된 공유 일정이 없습니다." })));
 }
 
 // 후보 시간 목록은 PC·모바일과 같은 파일(lib/shareddata.js 의 buildPollSlots)로 만든다 —
@@ -266,6 +266,7 @@ async function acceptInvite() {
     const result = await actionAdapter.respondInvite({ token, response: "accepted" });
     if (result.error) { status(result.error, true); return; }
     el("invite-token").value = "";
+    el("invite").close();
     await refresh();
     status("공유 캘린더에 참가했습니다.");
 }
@@ -274,6 +275,15 @@ async function acceptInvite() {
 
 el("btn-signin").onclick = startSignIn;
 el("btn-invite").onclick = acceptInvite;
+function openInvite() { if (session?.access_token) { el("invite").showModal(); window.setTimeout(() => el("invite-token").focus(), 0); } }
+el("btn-open-invite").onclick = openInvite;
+el("btn-mobile-invite").onclick = openInvite;
+document.querySelectorAll(".nav-item").forEach((button) => button.addEventListener("click", () => {
+    const target = el(button.dataset.target);
+    if (!target || target.classList.contains("hidden")) return;
+    document.querySelectorAll(".nav-item").forEach((item) => item.classList.toggle("active", item === button));
+    target.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+}));
 el("invite-token").addEventListener("keydown", (event) => { if (event.key === "Enter") acceptInvite(); });
 
 (async () => {

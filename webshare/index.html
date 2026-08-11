@@ -8,36 +8,55 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- 앱을 깔지 않은 사람이 초대받은 공유 캘린더·시간 조율에 응답하는 페이지.
-         PC·모바일과 같은 Supabase 프로젝트를 보고, 같은 RLS 정책 아래에서만 움직인다 —
-         이 페이지가 따로 권한을 갖는 것은 없다(로그인한 계정이 볼 수 있는 것만 보인다). -->
-    <header id="topbar">
-        <h1>공유 일정</h1>
-        <div id="account"></div>
-    </header>
+    <div class="app-shell">
+        <header id="topbar">
+            <div class="brand"><span class="brand-kicker">BS CALENDAR</span><h1>공유 일정</h1></div>
+            <div id="account"></div>
+        </header>
 
-    <main id="main">
-        <section id="signin" class="panel hidden">
-            <p class="lead">초대받은 공유 캘린더와 시간 조율을 보려면 구글 계정으로 로그인해 주세요.</p>
-            <button id="btn-signin" class="btn primary" type="button">구글 계정으로 로그인</button>
-        </section>
+        <div class="workspace">
+            <aside class="sidebar" aria-label="공유 일정 탐색">
+                <div class="sidebar-title">공유 공간</div>
+                <nav class="navigation">
+                    <button class="nav-item active" type="button" data-target="signin"><span>시작하기</span><small>로그인</small></button>
+                    <button class="nav-item" type="button" data-target="calendars"><span>공유 캘린더</span><small>목록</small></button>
+                    <button class="nav-item" type="button" data-target="polls"><span>시간 조율</span><small>응답</small></button>
+                    <button class="nav-item" type="button" data-target="events"><span>공유 일정</span><small>참석</small></button>
+                </nav>
+                <div class="sidebar-note"><strong>같은 일정, 같은 기준</strong><span>캘린더를 함께 보고 가능한 시간을 조율한다.</span></div>
+            </aside>
 
-        <section id="invite" class="panel hidden">
+            <main id="main">
+                <section id="signin" class="welcome-card hidden" aria-labelledby="welcome-title">
+                    <div class="section-kicker">공유 일정</div>
+                    <h2 id="welcome-title">함께 확인하고,<br>바로 조율한다.</h2>
+                    <p>초대받은 공유 캘린더와 시간 조율 요청을 확인하려면 Google 계정으로 로그인한다.</p>
+                    <button id="btn-signin" class="btn primary" type="button">Google 계정으로 로그인</button>
+                </section>
+
+                <section id="content" class="hidden" aria-live="polite">
+                    <div class="content-intro"><div><span class="section-kicker">공유 공간</span><h2>팀의 다음 약속을 정리한다.</h2></div><button id="btn-open-invite" class="btn secondary" type="button">초대 코드 입력</button></div>
+                    <div class="content-grid">
+                        <section id="calendars" class="panel section-panel" aria-labelledby="calendars-title"></section>
+                        <section id="polls" class="panel section-panel" aria-labelledby="polls-title"></section>
+                        <section id="events" class="panel section-panel" aria-labelledby="events-title"></section>
+                    </div>
+                </section>
+
+                <p id="status" class="status" role="status" aria-live="polite"></p>
+            </main>
+        </div>
+    </div>
+
+    <button id="btn-mobile-invite" class="mobile-action hidden" type="button">초대 코드 입력</button>
+
+    <dialog id="invite" class="invite-dialog" aria-labelledby="invite-title">
+        <form method="dialog" class="invite-sheet">
+            <div class="dialog-heading"><div><span class="section-kicker">공유 캘린더</span><h2 id="invite-title">초대 코드 입력</h2><p>받은 초대 코드를 입력하면 공유 캘린더에 참여한다.</p></div><button id="btn-close-invite" class="close-dialog" type="submit" aria-label="초대 코드 입력 닫기">닫기</button></div>
             <label for="invite-token">초대 코드</label>
-            <div class="row">
-                <input id="invite-token" type="text" inputmode="latin" autocomplete="off" spellcheck="false" placeholder="받은 초대 코드">
-                <button id="btn-invite" class="btn" type="button">참가</button>
-            </div>
-        </section>
-
-        <section id="content" class="hidden">
-            <div id="calendars" class="panel"></div>
-            <div id="polls" class="panel"></div>
-            <div id="events" class="panel"></div>
-        </section>
-
-        <p id="status" class="status"></p>
-    </main>
+            <div class="invite-row"><input id="invite-token" type="text" inputmode="latin" autocomplete="off" spellcheck="false" placeholder="받은 초대 코드"><button id="btn-invite" class="btn primary" type="button">참여하기</button></div>
+        </form>
+    </dialog>
 
     <script type="module" src="app.js"></script>
 </body>
