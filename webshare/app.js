@@ -93,12 +93,19 @@ function startSignIn() {
     location.href = `${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirectTarget())}`;
 }
 
-async function startAnonymousSession() {
-    status("임시 참여 계정을 준비하는 중입니다.");
-    const result = await client.auth.signInAnonymously();
+async function guestEmail(name) {
+    const bytes = new TextEncoder().encode(name.trim().toLocaleLowerCase("ko-KR"));
+    const digest = await crypto.subtle.digest("SHA-256", bytes);
+    return `guest-${[...new Uint8Array(digest)].map((value) => value.toString(16).padStart(2, "0")).join("")}@guest.bs-calendar.invalid`;
+}
+
+async function startGuestSession(name, password) {
+    status("게스트 계정을 확인하는 중입니다.");
+    const email = await guestEmail(name);
+    let result = await client.auth.signInWithPassword(email, password);
+    if (result.error) result = await client.auth.signUp(email, password, { full_name: name });
     if (result.error || !result.data?.access_token || !result.data?.user?.id) {
-        const detail = result.error?.message || "임시 참여 계정을 만들지 못했습니다.";
-        status(/anonymous/i.test(detail) ? "익명 참여가 아직 활성화되지 않았습니다. Supabase 인증 설정에서 익명 로그인을 켜야 합니다." : detail, true);
+        status("이름 또는 비밀번호를 확인하거나 다른 이름으로 다시 시도해 주세요.", true);
         return false;
     }
     saveSession(sessionFrom(result.data));
@@ -169,7 +176,7 @@ function renderAccount() {
     if (!session?.access_token) return;
     const anonymous = !!session.user?.isAnonymous;
     box.append(
-        node("span", { class: "who", text: anonymous ? "임시 사용자" : (session.user?.email || session.user?.name || "") }),
+        node("span", { class: "who", text: anonymous ? "임시 사용자" : (session.user?.name || session.user?.email || "") }),
         node("button", { class: "btn small", type: "button", onclick: () => { if (!anonymous || window.confirm("이 브라우저의 임시 참여 기록을 지웁니다. 다시 들어오려면 새 초대 코드가 필요합니다.")) signOut(); }, text: anonymous ? "나가기" : "로그아웃" }));
 }
 
@@ -181,7 +188,7 @@ function applyView(scroll = false) {
     if (!ready) {
         el("signin-kicker").textContent = meta.kicker;
         el("welcome-title").textContent = meta.title;
-        el("signin-description").textContent = `${meta.description} 확인하려면 Google 계정으로 로그인한다.`;
+        el("signin-description").textContent = `${meta.description} 게스트 이름과 비밀번호 또는 Google 계정으로 시작한다.`;
         return;
     }
     for (const id of ["calendars", "polls", "events"]) el(id).classList.toggle("hidden", view !== "overview" && view !== id);
@@ -334,11 +341,10 @@ async function createCalendar() {
 async function acceptInvite(input = el("invite-token")) {
     const token = input.value.trim();
     if (!token) { status("초대 코드를 입력해 주세요.", true); return; }
-    const newAnonymousSession = !session?.access_token;
-    if (newAnonymousSession && !await startAnonymousSession()) return;
+    if (!session?.access_token) { status("게스트 이름과 비밀번호를 먼저 입력해 주세요.", true); return; }
     status("참가 중…");
     const result = await actionAdapter.respondInvite({ token, response: "accepted" });
-    if (result.error) { if (newAnonymousSession) await refresh(); status(result.error, true); return; }
+    if (result.error) { status(result.error, true); return; }
     input.value = "";
     if (el("invite").open) el("invite").close();
     await refresh();
@@ -349,7 +355,7 @@ async function acceptInvite(input = el("invite-token")) {
 
 el("btn-signin").onclick = startSignIn;
 el("btn-invite").onclick = () => acceptInvite(el("invite-token"));
-el("guest-invite").addEventListener("submit", (event) => { event.preventDefault(); acceptInvite(el("guest-invite-token")); });
+el("guest-invite").addEventListener("submit", async (event) => { event.preventDefault(); const name = el("guest-name").value.trim(), password = el("guest-password").value; if (!name || password.length < 6) { status("이름과 6자 이상 비밀번호를 입력해 주세요.", true); return; } if (!await startGuestSession(name, password)) return; const token = el("guest-invite-token"); if (token.value.trim()) await acceptInvite(token); else if (await refresh()) status(`${name} 게스트로 시작했습니다.`); });
 el("path-invite").addEventListener("submit", (event) => { event.preventDefault(); acceptInvite(el("path-invite-token")); });
 el("calendar-create-form").addEventListener("submit", (event) => { event.preventDefault(); createCalendar(); });
 document.querySelectorAll("[data-close-calendar]").forEach((button) => button.addEventListener("click", () => el("calendar-create").close()));

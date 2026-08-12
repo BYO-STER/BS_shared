@@ -5,7 +5,7 @@
     <title>BS calendar 공유 일정</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="color-scheme" content="light">
-    <link rel="stylesheet" href="style.css?v=20260812-08">
+    <link rel="stylesheet" href="style.css?v=20260812-09">
 </head>
 <body>
     <div class="desktop-shell">
@@ -40,8 +40,8 @@
                     <section id="signin" class="welcome-card hidden" aria-labelledby="welcome-title">
                         <div id="signin-kicker" class="section-kicker">기능 모듈 · 공유 일정</div>
                         <h1 id="welcome-title">공유 일정</h1>
-                        <p id="signin-description">초대받은 공유 캘린더와 시간 조율 요청을 확인하려면 Google 계정으로 로그인한다.</p>
-                        <form id="guest-invite" class="guest-invite"><label for="guest-invite-token">초대 코드</label><div class="invite-row"><input id="guest-invite-token" type="text" inputmode="latin" autocomplete="one-time-code" spellcheck="false" placeholder="받은 초대 코드"><button class="btn primary" type="submit">코드로 시작</button></div><p>로그인 없이 임시 사용자로 참여한다. 이 브라우저의 데이터를 지우거나 나가면 다시 초대 코드가 필요하다.</p></form>
+                        <p id="signin-description">게스트 이름과 비밀번호로 시작하거나 Google 계정으로 로그인한다.</p>
+                        <form id="guest-invite" class="guest-invite"><label for="guest-name">이름</label><input id="guest-name" type="text" maxlength="40" autocomplete="nickname" placeholder="표시할 이름" required><label for="guest-password">비밀번호</label><input id="guest-password" type="password" minlength="6" maxlength="32" autocomplete="current-password" placeholder="6~32자" required><label for="guest-invite-token">초대 코드 <span>(선택)</span></label><div class="invite-row"><input id="guest-invite-token" type="text" inputmode="latin" autocomplete="one-time-code" spellcheck="false" placeholder="받은 초대 코드"><button class="btn primary" type="submit">게스트로 시작</button></div><p>이름과 비밀번호로 다시 들어올 수 있다. 초대 코드는 입력한 경우에만 바로 참가 처리한다.</p></form>
                         <div class="signin-divider" aria-hidden="true"><span>또는</span></div>
                         <button id="btn-signin" class="btn primary" type="button">Google 계정으로 로그인</button>
                     </section>
