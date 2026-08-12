@@ -71,7 +71,7 @@ function sessionFrom(data) {
         access_token: data?.access_token || "",
         refresh_token: data?.refresh_token || session?.refresh_token || "",
         expires_at: Date.now() + Math.max(0, Number(data?.expires_in) || 0) * 1000,
-        user: { id: String(user.id || ""), email: user.email || null, name: user.user_metadata?.full_name || user.email || "나" }
+        user: { id: String(user.id || ""), email: user.email || null, name: user.user_metadata?.full_name || user.email || "나", isAnonymous: user.is_anonymous === true || user.isAnonymous === true }
     };
 }
 
@@ -93,6 +93,18 @@ function startSignIn() {
     location.href = `${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirectTarget())}`;
 }
 
+async function startAnonymousSession() {
+    status("임시 참여 계정을 준비하는 중입니다.");
+    const result = await client.auth.signInAnonymously();
+    if (result.error || !result.data?.access_token || !result.data?.user?.id) {
+        const detail = result.error?.message || "임시 참여 계정을 만들지 못했습니다.";
+        status(/anonymous/i.test(detail) ? "익명 참여가 아직 활성화되지 않았습니다. Supabase 인증 설정에서 익명 로그인을 켜야 합니다." : detail, true);
+        return false;
+    }
+    saveSession(sessionFrom(result.data));
+    return true;
+}
+
 // 돌아온 주소의 조각(#…)에서 토큰을 받아 세션으로 삼는다. 조각은 히스토리에 남기지 않는다.
 async function consumeRedirect() {
     if (!location.hash.includes("access_token")) return false;
@@ -109,7 +121,7 @@ async function consumeRedirect() {
     history.replaceState(null, "", redirectTarget());
     const me = await client.auth.user(accessToken);
     if (!me.error && me.data?.id) {
-        saveSession({ ...session, user: { id: me.data.id, email: me.data.email || null, name: me.data.user_metadata?.full_name || me.data.email || "나" } });
+        saveSession({ ...session, user: { id: me.data.id, email: me.data.email || null, name: me.data.user_metadata?.full_name || me.data.email || "나", isAnonymous: !!me.data.is_anonymous } });
     }
     return true;
 }
@@ -155,9 +167,10 @@ function renderAccount() {
     const box = el("account");
     box.textContent = "";
     if (!session?.access_token) return;
+    const anonymous = !!session.user?.isAnonymous;
     box.append(
-        node("span", { class: "who", text: session.user?.email || session.user?.name || "" }),
-        node("button", { class: "btn small", type: "button", onclick: signOut, text: "로그아웃" }));
+        node("span", { class: "who", text: anonymous ? "임시 사용자" : (session.user?.email || session.user?.name || "") }),
+        node("button", { class: "btn small", type: "button", onclick: () => { if (!anonymous || window.confirm("이 브라우저의 임시 참여 기록을 지웁니다. 다시 들어오려면 새 초대 코드가 필요합니다.")) signOut(); }, text: anonymous ? "나가기" : "로그아웃" }));
 }
 
 function applyView(scroll = false) {
@@ -297,6 +310,7 @@ function openCalendarCreate() {
     if (!session?.access_token) return;
     el("calendar-name").value = "";
     el("calendar-color").value = "#6f87ad";
+    el("calendar-create-description").textContent = session.user?.isAnonymous ? "임시 계정이 소유자가 된다. 이 브라우저의 데이터를 지우거나 나가면 소유권을 복구할 수 없다." : "만든 계정이 소유자가 된다. 구성원은 생성 후 초대 코드로 참여시킨다.";
     el("calendar-create").showModal();
     window.setTimeout(() => el("calendar-name").focus(), 0);
 }
@@ -320,9 +334,11 @@ async function createCalendar() {
 async function acceptInvite(input = el("invite-token")) {
     const token = input.value.trim();
     if (!token) { status("초대 코드를 입력해 주세요.", true); return; }
+    const newAnonymousSession = !session?.access_token;
+    if (newAnonymousSession && !await startAnonymousSession()) return;
     status("참가 중…");
     const result = await actionAdapter.respondInvite({ token, response: "accepted" });
-    if (result.error) { status(result.error, true); return; }
+    if (result.error) { if (newAnonymousSession) await refresh(); status(result.error, true); return; }
     input.value = "";
     if (el("invite").open) el("invite").close();
     await refresh();
@@ -333,6 +349,7 @@ async function acceptInvite(input = el("invite-token")) {
 
 el("btn-signin").onclick = startSignIn;
 el("btn-invite").onclick = () => acceptInvite(el("invite-token"));
+el("guest-invite").addEventListener("submit", (event) => { event.preventDefault(); acceptInvite(el("guest-invite-token")); });
 el("path-invite").addEventListener("submit", (event) => { event.preventDefault(); acceptInvite(el("path-invite-token")); });
 el("calendar-create-form").addEventListener("submit", (event) => { event.preventDefault(); createCalendar(); });
 document.querySelectorAll("[data-close-calendar]").forEach((button) => button.addEventListener("click", () => el("calendar-create").close()));
@@ -352,7 +369,7 @@ el("invite-token").addEventListener("keydown", (event) => { if (event.key === "E
     if (session?.access_token) {
         if (!session.user?.id) {
             const me = await client.auth.user(session.access_token);
-            if (!me.error && me.data?.id) saveSession({ ...session, user: { id: me.data.id, email: me.data.email || null, name: me.data.user_metadata?.full_name || me.data.email || "나" } });
+            if (!me.error && me.data?.id) saveSession({ ...session, user: { id: me.data.id, email: me.data.email || null, name: me.data.user_metadata?.full_name || me.data.email || "나", isAnonymous: !!me.data.is_anonymous } });
             else { signOut(); return; }
         }
         await refresh();

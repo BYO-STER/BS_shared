@@ -184,6 +184,7 @@ export function createSupabaseRest({ url, key, getToken, timeoutMs = 15000 }) {
         // apikey 만 붙이고 Authorization 은 붙이지 않는다.
         auth: {
             // 구글 id_token 을 Supabase 세션으로 교환한다(PC 의 signInWithIdToken 과 같은 동작).
+            signInAnonymously: () => authRequest(base, key, "/auth/v1/signup", { data: {} }, timeoutMs),
             signInWithGoogleIdToken: (idToken) => authRequest(base, key, "/auth/v1/token?grant_type=id_token", { provider: "google", id_token: idToken }, timeoutMs),
             refresh: (refreshToken) => authRequest(base, key, "/auth/v1/token?grant_type=refresh_token", { refresh_token: refreshToken }, timeoutMs),
             user: async (accessToken) => {

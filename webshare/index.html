@@ -5,7 +5,7 @@
     <title>BS calendar 공유 일정</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="color-scheme" content="light">
-    <link rel="stylesheet" href="style.css?v=20260812-06">
+    <link rel="stylesheet" href="style.css?v=20260812-08">
 </head>
 <body>
     <div class="desktop-shell">
@@ -41,6 +41,8 @@
                         <div id="signin-kicker" class="section-kicker">기능 모듈 · 공유 일정</div>
                         <h1 id="welcome-title">공유 일정</h1>
                         <p id="signin-description">초대받은 공유 캘린더와 시간 조율 요청을 확인하려면 Google 계정으로 로그인한다.</p>
+                        <form id="guest-invite" class="guest-invite"><label for="guest-invite-token">초대 코드</label><div class="invite-row"><input id="guest-invite-token" type="text" inputmode="latin" autocomplete="one-time-code" spellcheck="false" placeholder="받은 초대 코드"><button class="btn primary" type="submit">코드로 시작</button></div><p>로그인 없이 임시 사용자로 참여한다. 이 브라우저의 데이터를 지우거나 나가면 다시 초대 코드가 필요하다.</p></form>
+                        <div class="signin-divider" aria-hidden="true"><span>또는</span></div>
                         <button id="btn-signin" class="btn primary" type="button">Google 계정으로 로그인</button>
                     </section>
 
@@ -73,7 +75,7 @@
 
     <dialog id="calendar-create" class="invite-dialog" aria-labelledby="calendar-create-title">
         <form id="calendar-create-form" class="invite-sheet">
-            <div class="dialog-heading"><div><span class="section-kicker">공유 캘린더</span><h2 id="calendar-create-title">공유 캘린더 만들기</h2><p>만든 계정이 소유자가 된다. 구성원은 생성 후 초대 코드로 참여시킨다.</p></div><button class="close-dialog" type="button" data-close-calendar aria-label="공유 캘린더 만들기 닫기">닫기</button></div>
+            <div class="dialog-heading"><div><span class="section-kicker">공유 캘린더</span><h2 id="calendar-create-title">공유 캘린더 만들기</h2><p id="calendar-create-description">만든 계정이 소유자가 된다. 구성원은 생성 후 초대 코드로 참여시킨다.</p></div><button class="close-dialog" type="button" data-close-calendar aria-label="공유 캘린더 만들기 닫기">닫기</button></div>
             <label for="calendar-name">이름</label>
             <input id="calendar-name" type="text" maxlength="120" autocomplete="off" placeholder="예: TRPG 정기 모임" required>
             <label for="calendar-color">표시 색</label>
